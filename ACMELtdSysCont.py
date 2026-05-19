@@ -21,10 +21,3 @@ def guardar_bd(bd):
 
 def limpiar_pantalla():
     os.system('cls' if os.name == 'nt' else 'clear')
-
-asd
-assertda
-setas
-defas
-def
-asd
