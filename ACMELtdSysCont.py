@@ -86,3 +86,104 @@ def menu_usuario(bd, id_usuario):
             ver_boletas_por_estado(bd, id_usuario, "RECHAZADA")
         elif opcion == '6':
             break
+
+#función para registras las boletas
+def registrar_boleta(bd, id_usuario):
+    limpiar_pantalla()
+    print("--- REGISTRAR NUEVA BOLETA ---")
+    semana = input("¿A qué semana corresponde? (Ej: 1, 2, 3, 4): ")
+    fecha = input("Fecha de visita (DD/MM/AAAA): ")
+    hora = input("Hora de visita (HH:MM): ")
+    nro_boleta = input("Número de boleta: ")
+    motivo = input("Motivo de viaje: ")
+    cliente = input("Cliente visitado: ")
+    try:
+        monto = float(input("Monto gastado (S/): ")) #este valor se usará para la sumatoria de todas las boletas ingresadas
+    except ValueError:
+        print("Debe ingresar solo números")
+        input("Presiona Enter para continuar...")
+        return
+
+    nueva_boleta = {
+        "semana": semana, "fecha": fecha, "hora": hora, "nro_boleta": nro_boleta,
+        "motivo": motivo, "cliente": cliente, "monto": monto,
+        "estado": "PENDIENTE", "observacion": ""
+    }
+    
+    bd["boletas"][id_usuario].append(nueva_boleta)
+    guardar_bd(bd)
+    print("La boleta se ha registrado correctamente.")
+    input("Presiona Enter para volver...")
+
+#función para ver las boletas registradas por cada estado
+def ver_boletas_por_estado(bd, id_usuario, estado_filtro):
+    limpiar_pantalla()
+    print(f"--- BOLETAS: {estado_filtro} ---")
+    boletas = bd["boletas"].get(id_usuario, [])
+    
+    if not boletas:
+        print("No hay boletas registradas.")
+    else:
+        semanas = {}
+        for b in boletas:
+            if estado_filtro == "TODAS" or b["estado"] == estado_filtro:
+                sem = b["semana"]
+                if sem not in semanas: semanas[sem] = []
+                semanas[sem].append(b)
+        
+        for sem, lista in sorted(semanas.items()):
+            print(f"\n>> SEMANA {sem}:")
+            for b in lista:
+                print(f"  - Fecha: {b['fecha']} | Nro: {b['nro_boleta']} | Monto: S/{b['monto']} | Estado: {b['estado']}")
+                if b['observacion']:
+                    print(f"    *Obs: {b['observacion']}")
+    
+    input("\nPresiona Enter para volver...")
+
+### 3ER MODULO: MENU DE CONTABILIDAD
+def menu_contabilidad(bd):
+    while True:
+        limpiar_pantalla()
+        print("--- BIENVENIDO AL MENÚ DE CONTABILIDAD ---")
+        print("1. Ver lista de usuarios registrados y sus boletas")
+        print("2. Gestionar boletas por usuario y semana")
+        print("3. Cerrar sesión y volver")
+        
+        opcion = input("Selecciona una opción: ")
+
+        if opcion == '1':
+            listar_y_seleccionar_usuarios(bd)
+        elif opcion == '2':
+            limpiar_pantalla()
+            usuario_id = input("Ingresa el ID del usuario a evaluar (Ej: U12345678): ")
+            if usuario_id not in bd["boletas"]:
+                print("El usuario no existe o no tiene boletas registradas.")
+                input("Presiona Enter...")
+                continue
+            semana = input("Ingresa la semana a evaluar (Ej: 1, 2, 3, 4): ")
+            gestionar_boletas_semana(bd, usuario_id, semana)
+        elif opcion == '3':
+            break
+
+#función para listar los usuarios registrados ysus boletas
+def listar_y_seleccionar_usuarios(bd):
+    limpiar_pantalla()
+    print("--- 1. USUARIOS REGISTRADOS & BOLETAS ---")
+    usuarios_lista = list(bd["usuarios"].items())
+    
+    # Mostrar la lista con números y conteo de boletas
+    for i, (uid, info) in enumerate(usuarios_lista, start=1):
+        if info['rol'] == 'U':
+            boletas = bd["boletas"].get(uid, [])
+            total = len(boletas)
+            pendientes = sum(1 for b in boletas if b["estado"] == "PENDIENTE")
+            estado_txt = f" | Boletas: {total} (Pendientes: {pendientes})"
+        else:
+            estado_txt = " | (Personal de Contabilidad)"
+            
+        print(f"[{i}] ID: {uid} | Nombre: {info['nombres']}{estado_txt}")
+        
+    print("\n[0] Volver atrás")
+    seleccion = input("\nSelecciona el número de usuario para ver y evaluar sus boletas: ")
+
+    
