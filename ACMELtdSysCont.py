@@ -186,4 +186,89 @@ def listar_y_seleccionar_usuarios(bd):
     print("\n[0] Volver atrás")
     seleccion = input("\nSelecciona el número de usuario para ver y evaluar sus boletas: ")
 
+    try:
+        idx = int(seleccion)
+        if idx == 0:
+            return
+        if 1 <= idx <= len(usuarios_lista):
+            uid_seleccionado = usuarios_lista[idx-1][0]
+            if bd["usuarios"][uid_seleccionado]["rol"] == 'C':
+                print("No hay boletas para evaluar.")
+                input("Presiona Enter...")
+            else:
+                evaluar_boletas_directo(bd, uid_seleccionado)
+        else:
+            print("El número está fuera de rangoo.")
+            input("Presiona Enter...")
+    except ValueError:
+        print("❌ Por favor, ingresa un número válido.")
+        input("Presiona Enter...")
+
+def evaluar_boletas_directo(bd, usuario_id):
+    limpiar_pantalla()
+    boletas = bd["boletas"].get(usuario_id, [])
+    if not boletas:
+        print(f"El usuario no tiene boletas registradas.")
+        input("Presiona Enter para volver...")
+        return
+        
+    print(f"--- BOLETAS DE: {bd['usuarios'][usuario_id]['nombres']} ---")
     
+    # Mostrar resumen por semanas de este usuario
+    semanas = {}
+    for b in boletas:
+        sem = b["semana"]
+        if sem not in semanas: semanas[sem] = []
+        semanas[sem].append(b)
+        
+    for sem, lista in sorted(semanas.items()):
+        pendientes = sum(1 for b in lista if b["estado"] == "PENDIENTE")
+        print(f">> SEMANA {sem}: {len(lista)} boletas registradas ({pendientes} pendientes de evaluación)")
+        
+    semana_elegida = input("\nIngresa el número de la SEMANA que deseas evaluar (o 'X' para cancelar): ")
+    if semana_elegida.upper() != 'X':
+        gestionar_boletas_semana(bd, usuario_id, semana_elegida)
+
+#aquis e realiza la evaluacion de boletas de una semana especifica
+def gestionar_boletas_semana(bd, usuario_id, semana):
+    """Evalúa una semana específica de un usuario."""
+    limpiar_pantalla()
+    boletas_semana = [b for b in bd["boletas"][usuario_id] if b["semana"] == semana]
+    
+    if not boletas_semana:
+        print(f"No hay boletas para la semana {semana}.")
+        input("Presiona Enter...")
+        return
+
+    print(f"--- DETALLE SEMANA {semana} | Usuario: {usuario_id} ---")
+    total_gastado = 0.0
+    
+    for i, b in enumerate(boletas_semana):
+        print(f"[{i}] Fecha: {b['fecha']} | Nro: {b['nro_boleta']} | Monto: S/{b['monto']} | Estado: {b['estado']}")
+        total_gastado += b['monto']
+        
+    print("-" * 30)
+    print(f"MONTO TOTAL INGRESADO: S/ {total_gastado}")
+    if total_gastado > LIMITE_SEMANAL:
+        print(f"ADVERTENCIA: Supera el límite de S/{LIMITE_SEMANAL}. (Exceso: S/{total_gastado - LIMITE_SEMANAL})")
+    else:
+        print("El monto está dentro del límite permitido.")
+        
+    print("\nAcciones:")
+    print("1. Cambiar estado a todas las boletas de la semana (Aprobar/Rechazar/Observar)")
+    print("2. Atrás")
+    acc = input("Seleccione: ")
+    
+    if acc == '1':
+        nuevo_estado = input("Ingrese nuevo estado (APROBADA / RECHAZADA / OBSERVADA): ").upper()
+        observacion = input("Ingrese una observación (opcional) o Enter para omitir: ")
+        
+        for b in bd["boletas"][usuario_id]:
+            if b["semana"] == semana:
+                b["estado"] = nuevo_estado
+                b["observacion"] = observacion
+                
+        guardar_bd(bd)
+        simular_envio_correo(bd["usuarios"][usuario_id]["correo"], nuevo_estado, total_gastado)
+        input("Presiona Enter para continuar...")
+        
