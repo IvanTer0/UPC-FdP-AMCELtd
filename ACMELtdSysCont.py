@@ -271,4 +271,77 @@ def gestionar_boletas_semana(bd, usuario_id, semana):
         guardar_bd(bd)
         simular_envio_correo(bd["usuarios"][usuario_id]["correo"], nuevo_estado, total_gastado)
         input("Presiona Enter para continuar...")
+
+def simular_envio_correo(correo, estado, monto):
+    print("\n" + "="*40)
+    print("ENVÍO DE CORREO...")
+    print(f"Para: {correo}")
+    print(f"Asunto: Actualización de Reembolso - Estado: {estado}")
+    print(f"Mensaje: Su solicitud de reembolso por el monto de S/{monto} ha sido marcada como {estado}.")
+    if estado == "APROBADA":
+        print("El dinero será depositado en su cuenta en los próximos días.")
+    elif estado == "RECHAZADA":
+        print("Ha excedido las políticas de viáticos o los comprobantes no son válidos.")
+    print("="*40 + "\n")
+
+### 4TO MÓDULO : CAMBIO DE CONTRASEÑA
+def cambiar_contrasena(bd):
+    limpiar_pantalla()
+    print("--- 4. CAMBIAR CONTRASEÑA ---")
+    id_usuario = input("Ingrese su ID de Usuario: ")
+    correo = input("Ingrese su correo electrónico registrado: ")
+    
+    if id_usuario in bd["usuarios"] and bd["usuarios"][id_usuario]["correo"] == correo:
+        nueva_pass = input("Ingrese su nueva contraseña: ")
+        bd["usuarios"][id_usuario]["password"] = nueva_pass
+        guardar_bd(bd)
+        print("Contraseña actualizada correctamente.")
+    else:
+        print("Error: Alguno de los datos son incorrectos.")
+    input("Presiona Enter para volver al menú...")
+
+###FLUJO PRINCIPAL DEL PROGRAMA
+def main():
+    bd = cargar_bd()
+    
+    while True:
+        limpiar_pantalla()
+        print("====== SISTEMA ACME CONT ======")
+        print("1. Crear Usuario")
+        print("2. Iniciar Sesión como USUARIO")
+        print("3. Iniciar Sesión como CONTABILIDAD")
+        print("4. Cambiar Contraseña")
+        print("5. Salir")
         
+        opcion = input("Seleccione una opción: ")
+        
+        if opcion == '1':
+            crear_usuario(bd)
+        elif opcion in ['2', '3']:
+            limpiar_pantalla()
+            print("--- INICIAR SESIÓN ---")
+            id_usuario = input("ID de Usuario: ")
+            password = input("Contraseña: ")
+            
+            if id_usuario in bd["usuarios"] and bd["usuarios"][id_usuario]["password"] == password:
+                rol = bd["usuarios"][id_usuario]["rol"]
+                
+                if opcion == '2' and rol == 'U':
+                    menu_usuario(bd, id_usuario)
+                elif opcion == '3' and rol == 'C':
+                    menu_contabilidad(bd)
+                else:
+                    print("No tiene los privilegios suficiente para acceder a esta sección.")
+                    input("Presiona Enter...")
+            else:
+                print("El usuario o contraseña son incorrectos o no existen")
+                input("Presiona Enter...")
+                
+        elif opcion == '4':
+            cambiar_contrasena(bd)
+        elif opcion == '5':
+            print("Saliendo del sistema...")
+            break
+
+if __name__ == "__main__":
+    main()

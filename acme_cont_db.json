@@ -1,0 +1,44 @@
+{
+    "usuarios": {
+        "U75707570": {
+            "dni": "75707570",
+            "nombres": "mauro casas",
+            "correo": "mauro@gmail.com",
+            "password": "mauro",
+            "rol": "U"
+        },
+        "C10102020": {
+            "dni": "10102020",
+            "nombres": "Ivan",
+            "correo": "ivan@gmail.com",
+            "password": "terrazas",
+            "rol": "C"
+        }
+    },
+    "boletas": {
+        "U75707570": [
+            {
+                "semana": "2",
+                "fecha": "10/05/2026",
+                "hora": "14:00",
+                "nro_boleta": "123-0990",
+                "motivo": "Visita t\u00e9cnia",
+                "cliente": "Fabiola",
+                "monto": 45.0,
+                "estado": "APROBADA",
+                "observacion": ""
+            },
+            {
+                "semana": "3",
+                "fecha": "20/05/2026",
+                "hora": "11:00",
+                "nro_boleta": "12312-34534",
+                "motivo": "Revisi\u00f3n",
+                "cliente": "Almendra",
+                "monto": 24.0,
+                "estado": "PENDIENTE",
+                "observacion": ""
+            }
+        ]
+    }
+}
