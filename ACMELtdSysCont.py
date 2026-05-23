@@ -201,7 +201,7 @@ def listar_y_seleccionar_usuarios(bd):
             print("El número está fuera de rangoo.")
             input("Presiona Enter...")
     except ValueError:
-        print("❌ Por favor, ingresa un número válido.")
+        print("Por favor, ingresa un número válido.")
         input("Presiona Enter...")
 
 def evaluar_boletas_directo(bd, usuario_id):
